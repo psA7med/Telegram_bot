@@ -3,9 +3,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 import requests
 import time
+import os
 
 # إعداداتك الشخصية
-TOKEN = "7690052301:AAHnBHa1blwUosz-CdTdrF3T_7cutsQxHoo"
+TOKEN = os.environ['BOT_TOKEN']  # بدلاً من كتابته مباشرة
 N8N_WEBHOOK_URL = "https://uykk.app.n8n.cloud/webhook-test/fe10ed64-3dca-4c5d-bb43-d2f2a83dca68"
 WHATSAPP_LINK = "https://wa.me/201285687227"
 
