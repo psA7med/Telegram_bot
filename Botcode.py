@@ -85,7 +85,7 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     
     # تخزين button_code في context.user_data
     context.user_data['button_code'] = button_code
-    context.user_data['chat_id'] = query.message.chat.id  # حفظ chat_id هنا
+    context.user_data['chat_id'] = query.message.chat.id
     
     # عرض رسالة وطلب كتابة الاستفسار
     subject = SUBJECTS.get(button_code, "المادة")
@@ -159,7 +159,7 @@ async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 "هيرد عليك في خلال ثواني قليلة إن شاء الله"
             )
             
-            # الانتظار 5 ثواني (افتراضيًا) - يمكن تعديل المدة
+            # الانتظار 5 ثواني (افتراضيًا)
             await asyncio.sleep(5)
             
             # إرسال رسالة المتابعة بعد استلام الرد
@@ -322,8 +322,9 @@ def run_bot():
                     ]
                 },
                 fallbacks=[CommandHandler("start", start)],
-                persistent=True,
-                name="conversation_handler"
+                # إزالة خاصية persistent التي تسبب المشكلة
+                # persistent=True,
+                # name="conversation_handler"
             )
             
             application.add_handler(conv_handler)
@@ -364,7 +365,7 @@ if __name__ == "__main__":
     ██████╔╝╚██████╔╝   ██║   
     ╚═════╝  ╚═════╝    ╚═╝   
     """)
-    print("🦅 C# Eagles Bot - Version 2.1")
+    print("🦅 C# Eagles Bot - Version 2.2.1")
     print("✅ البوت بدأ التشغيل وبيعمل بشكل دائم")
     print(f"📞 للتواصل: {WHATSAPP_LINK}")
     print("🔄 أي مشكلة هيحلها ويشتغل تاني لوحده")
