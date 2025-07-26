@@ -1,0 +1,25 @@
+name: 24/7 Telegram Bot
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # يعمل كل 10 دقائق
+  workflow_dispatch:        # يسمح بتشغيله يدوياً
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest  # يستخدم خادم لينكس مجاني
+
+    steps:
+    - name: تحميل الكود
+      uses: actions/checkout@v4  # يحمل ملفاتك من GitHub
+
+    - name: إعداد بايثون
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'  # اختر نسخة بايثون
+
+    - name: تثبيت المكتبات
+      run: pip install python-telegram-bot requests # المكتبات التي تحتاجها
+
+    - name: تشغيل البوت للأبد 🚀
+      run: python keep-alive.py  # أو node keep-alive.js
