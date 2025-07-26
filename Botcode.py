@@ -6,7 +6,13 @@ import time
 import os
 
 # إعداداتك الشخصية
-TOKEN = os.environ['BOT_TOKEN']  # بدلاً من كتابته مباشرة
+TOKEN = os.getenv('BOT_TOKEN')  # استخدام os.getenv بدلاً من os.environ
+if not TOKEN:
+    print("❌ خطأ: لم يتم العثور على BOT_TOKEN في متغيرات البيئة!")
+    print("⏱ إغلاق البوت في خلال 10 ثواني...")
+    time.sleep(10)
+    exit(1)
+
 N8N_WEBHOOK_URL = "https://uykk.app.n8n.cloud/webhook-test/fe10ed64-3dca-4c5d-bb43-d2f2a83dca68"
 WHATSAPP_LINK = "https://wa.me/201285687227"
 
@@ -267,6 +273,18 @@ def run_bot():
             time.sleep(10)
 
 if __name__ == "__main__":
+    # طباعة متغيرات البيئة للتشخيص
+    print("=== تشخيص المتغيرات البيئية ===")
+    print("قائمة المتغيرات البيئية المتاحة:")
+    for key in os.environ:
+        print(f"- {key}")
+    print(f"BOT_TOKEN موجود؟ {'نعم' if 'BOT_TOKEN' in os.environ else 'لا'}")
+    
+    # التأكد من وجود التوكن
+    if not TOKEN:
+        print("❌ خطأ جسيم: التوكن غير موجود!")
+        exit(1)
+    
     print("""
     ██████╗  ██████╗ ████████╗
     ██╔══██╗██╔═══██╗╚══██╔══╝
