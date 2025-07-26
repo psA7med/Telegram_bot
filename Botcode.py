@@ -22,7 +22,7 @@ if not TOKEN:
     time.sleep(10)
     exit(1)
 
-N8N_WEBHOOK_URL = "https://uykk.app.n8n.cloud/webhook-test/fe10ed64-3dca-4c5d-bb43-d2f2a83dca68"
+N8N_WEBHOOK_URL = "https://uykk.app.n8n.cloud/webhook-test/telegram-ai-hook"
 WHATSAPP_LINK = "https://wa.me/201285687227"
 
 # إعدادات التسجيل
