@@ -7,7 +7,8 @@ from telegram.ext import (
     CallbackQueryHandler,
     MessageHandler,
     filters,
-    ContextTypes
+    ContextTypes,
+    ConversationHandler
 )
 import requests
 import os
@@ -47,7 +48,10 @@ SUBJECTS = {
 # حالات المحادثة
 AWAITING_QUESTION, AFTER_RESPONSE = range(2)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    # مسح أي بيانات قديمة
+    context.user_data.clear()
+    
     keyboard = [
         [InlineKeyboardButton("فيزياء 1", callback_data="1")],
         [InlineKeyboardButton("فيزياء 2", callback_data="2")],
@@ -56,23 +60,32 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("أساسيات البرمجة", callback_data="5")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "🦅 أهلاً وسهلاً بيك في بوت C# Eagles\n"
-        "إختر المادة اللي عاوز تذاكرها أو تسأل فيها\n"
-        "وأنا هكون معاك كأني الدكتور بتاعك 👨‍🏫",
-        reply_markup=reply_markup
-    )
+    
+    if update.message:
+        await update.message.reply_text(
+            "🦅 أهلاً وسهلاً بيك في بوت C# Eagles\n"
+            "إختر المادة اللي عاوز تذاكرها أو تسأل فيها\n"
+            "وأنا هكون معاك كأني الدكتور بتاعك 👨‍🏫",
+            reply_markup=reply_markup
+        )
+    else:
+        await update.callback_query.edit_message_text(
+            "🦅 أهلاً وسهلاً بيك في بوت C# Eagles\n"
+            "إختر المادة اللي عاوز تذاكرها أو تسأل فيها\n"
+            "وأنا هكون معاك كأني الدكتور بتاعك 👨‍🏫",
+            reply_markup=reply_markup
+        )
+    
     return AWAITING_QUESTION
 
-async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     button_code = query.data
-    chat_id = query.message.chat.id
     
-    # تخزين button_code و chat_id في context.user_data
+    # تخزين button_code في context.user_data
     context.user_data['button_code'] = button_code
-    context.user_data['chat_id'] = chat_id
+    context.user_data['chat_id'] = query.message.chat.id  # حفظ chat_id هنا
     
     # عرض رسالة وطلب كتابة الاستفسار
     subject = SUBJECTS.get(button_code, "المادة")
@@ -87,8 +100,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_message = update.message.text
     chat_id = update.message.chat.id
     
-    # التحقق من اختيار المادة أولاً
-    if context.user_data.get('chat_id') != chat_id or not context.user_data.get('button_code'):
+    # التحقق من وجود بيانات المادة
+    if 'button_code' not in context.user_data:
         await update.message.reply_text(
             "⌛ ياباشا متسرعش! لازم تختار المادة أولاً\n"
             "إضغط على /start واختار المادة"
@@ -112,7 +125,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
     return AWAITING_QUESTION
 
-async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     
@@ -127,7 +140,7 @@ async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             text="❌ يا عم الحكاية ناقصة حاجات! لازم تبدأ من الأول\n"
                  "إضغط على /start واختار المادة واكتب السؤال تاني"
         )
-        return
+        return ConversationHandler.END
     
     # إرسال البيانات للـ Webhook
     payload = {
@@ -146,7 +159,7 @@ async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 "هيرد عليك في خلال ثواني قليلة إن شاء الله"
             )
             
-            # الانتظار 5 ثواني (افتراضيًا)
+            # الانتظار 5 ثواني (افتراضيًا) - يمكن تعديل المدة
             await asyncio.sleep(5)
             
             # إرسال رسالة المتابعة بعد استلام الرد
@@ -167,13 +180,15 @@ async def handle_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                      f"كود الخطأ: {response.status_code}",
                 parse_mode="HTML"
             )
+            return ConversationHandler.END
     except Exception as e:
         await query.edit_message_text(
             text=f"🚨 للأسف حصل خطأ غير متوقع: {str(e)}\n"
                  f"لو سمحت تواصل مع صاحب البوت على {WHATSAPP_LINK} عشان يحل المشكلة"
         )
+        return ConversationHandler.END
 
-async def handle_retry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_retry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     
@@ -306,7 +321,9 @@ def run_bot():
                         CallbackQueryHandler(handle_start_over, pattern="^start_over$")
                     ]
                 },
-                fallbacks=[CommandHandler("start", start)]
+                fallbacks=[CommandHandler("start", start)],
+                persistent=True,
+                name="conversation_handler"
             )
             
             application.add_handler(conv_handler)
@@ -317,7 +334,7 @@ def run_bot():
             # بدء البوت
             logger.info("🟢 بدء تشغيل البوت...")
             print("🟢 البوت شغال دلوقتي!")
-            application.run_polling(drop_pending_updates=True, close_loop=False)
+            application.run_polling(drop_pending_updates=True)
             
         except Exception as e:
             logger.error(f"🔴 خطأ حرج: {e}")
