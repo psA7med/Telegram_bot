@@ -4,9 +4,8 @@ import subprocess
 
 while True:
     try:
-        # إنشاء نسخة من متغيرات البيئة مع إضافة BOT_TOKEN
-        env_vars = dict(os.environ)
-        env_vars["BOT_TOKEN"] = os.environ.get("BOT_TOKEN", "")
+        # إنشاء نسخة من متغيرات البيئة
+        env_vars = os.environ.copy()
         
         # تشغيل البوت مع تمرير المتغيرات
         subprocess.run(
