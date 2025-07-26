@@ -22,4 +22,6 @@ jobs:
       run: pip install python-telegram-bot requests # المكتبات التي تحتاجها
 
     - name: تشغيل البوت للأبد 🚀
-      run: python keep-alive.py  # أو node keep-alive.js
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}  # تمرير التوكن كمتغير بيئة
+      run: python keep-alive.py
